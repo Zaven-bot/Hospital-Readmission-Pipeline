@@ -1,0 +1,32 @@
+readmission-pipeline-ml/
+│
+├── data/                         # Raw and processed data files
+│   ├── raw/
+│   └── processed/
+│
+├── models/                       # Saved models (can also use MLflow registry)
+│
+├── notebooks/                   # Exploratory notebooks
+│   ├── 01_eda.ipynb
+│   ├── 02_cleaning.ipynb
+│   └── 03_modeling.ipynb
+│
+├── src/                         # Source code for the project
+│   ├── ingest.py                # Load raw data
+│   ├── clean.py                 # Cleaning logic
+│   ├── feature_engineering.py   # Feature engineering logic
+│   ├── train_model.py           # ML training + MLflow logging
+│   ├── evaluate_model.py        # Model evaluation, ROC, confusion matrix, etc.
+│   ├── pipeline.py              # Full end-to-end pipeline
+│
+├── airflow/ or prefect/         # DAGs or flows to orchestrate steps
+│
+├── mlruns/                      # MLflow experiment tracking data (auto-created)
+│
+├── .dvc/                        # Data version control
+│
+├── .gitignore
+├── env.yml                      # Dependencies
+├── README.md
+├── repository_layout.txt        # THIS FILE! :D
+└── mlflow_setup.md              # How to run MLflow locally / use UI
