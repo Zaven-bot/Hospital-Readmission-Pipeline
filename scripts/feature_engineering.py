@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+import argparse
 
 def load_clean_data(path):
     return pd.read_csv(path)
@@ -16,12 +17,7 @@ def encode_categorical_features(X, categorical_columns):
     missing_cols = [col for col in categorical_columns if col not in X.columns]
 
     if missing_cols:
-        print(f"""\n
-                    [⚠️ Warning] - Most Likely Already Encoded
-                  \n
-                  Skipped encoding of categorical columns: {missing_cols}
-                  \n\n
-                  """)
+        print(f"\n[⚠️ Warning] Skipped encoding of missing columns: {missing_cols}\n")
 
     if not available_cols:
         print("[ℹ️] No categorical columns to encode.")
@@ -78,6 +74,25 @@ def prepare_features(path_to_clean_data):
 
     X = encode_categorical_features(X, categorical_columns)
     X = scale_numerical_features(X, numerical_columns)
-    X_train, X_test, y_train, y_test = split_data(X, y)
 
-    return X_train, X_test, y_train, y_test
+    return X, y
+
+def prepare_features_and_save(path_to_clean_data, output_path):
+    X, y = prepare_features(path_to_clean_data)
+
+    # Combine X and y back into a full DataFrame
+    df_full = pd.concat([X, y], axis=1)
+
+    # Save the processed dataset
+    df_full.to_csv(output_path, index=False)
+    print(f"[✅] Featured data saved to {output_path}")
+
+if __name__ == "__main__":
+    # ✨ Parse the --input and --output arguments
+    parser = argparse.ArgumentParser(description="Clean hospital readmission data.")
+    parser.add_argument('--input', type=str, required=True, help="Path to raw input CSV")
+    parser.add_argument('--output', type=str, required=True, help="Path to save cleaned CSV")
+    args = parser.parse_args()
+
+    # ✨ Use user args.input and args.output dynamically
+    prepare_features_and_save(args.input, args.output)

@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import argparse
+
 
 def load_raw_data(path):
     df = pd.read_csv(path)
@@ -49,12 +51,22 @@ def encode_target(df):
     df['readmitted_binary'] = df['readmitted'].apply(lambda x: 1 if x == '<30' else 0)
     return df.drop(columns=['readmitted'])
 
-def clean_data_pipeline(path):
-    df = load_raw_data(path)
+def clean_data_pipeline(input_path, output_path):
+    df = load_raw_data(input_path)
     df = drop_unused_columns(df)
     df = handle_missing_values(df)
     df = clean_clinical_markers(df)
     df = map_simple_features(df)
     df = map_age_column(df)
     df = encode_target(df)
-    return df
+    df.to_csv(output_path, index=False)
+
+if __name__ == "__main__":
+    # ✨ Parse the --input and --output arguments
+    parser = argparse.ArgumentParser(description="Clean hospital readmission data.")
+    parser.add_argument('--input', type=str, required=True, help="Path to raw input CSV")
+    parser.add_argument('--output', type=str, required=True, help="Path to save cleaned CSV")
+    args = parser.parse_args()
+
+    # ✨ User args.input and args.output dynamically
+    clean_data_pipeline(args.input, args.output)
