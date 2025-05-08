@@ -105,15 +105,8 @@ Artifacts and metrics are logged to MLflow.
      (Airflow metadata store)  │      MLflow UI       │
                                └──────────────────────┘
 ```
-```
-```
-```
-```
-```
-```
-```
-```
-```
+
+
 ```
 
                       ┌──────────────────────────┐
@@ -160,7 +153,7 @@ Optional outputs:
 │  - cleaned_data.csv, model.pkl, plots/     │
 │  - mlruns/ for tracking experiments        │
 └────────────────────────────────────────────┘
-
+```
 
 
 ---
