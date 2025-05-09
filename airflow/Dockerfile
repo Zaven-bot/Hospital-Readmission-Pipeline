@@ -16,12 +16,11 @@ USER airflow
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy DAGs and init script
+# Copy DAGs and init script into image
 COPY ./dags /opt/airflow/dags
 COPY ./init.sh /opt/airflow/init.sh
 
+# Change permission to make init.sh executable
 USER root
 RUN chmod +x /opt/airflow/init.sh
 USER airflow
-
-ENTRYPOINT ["/opt/airflow/init.sh"]

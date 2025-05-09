@@ -28,8 +28,11 @@ else
     echo "Admin user already exists, skipping creation."
 fi
 
-# Start scheduler in background
-airflow scheduler &
-
-# Start webserver
-exec airflow webserver
+if [ "$1" = "webserver" ]; then
+  exec airflow webserver
+elif [ "$1" = "scheduler" ]; then
+  exec airflow scheduler
+else
+  echo "Unknown command: $1"
+  exit 1
+fi

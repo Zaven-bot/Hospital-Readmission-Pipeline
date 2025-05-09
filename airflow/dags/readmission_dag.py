@@ -1,36 +1,77 @@
 from datetime import datetime
 from airflow import DAG
 from airflow.operators.bash import BashOperator
+from airflow.models import Variable
+
+# Configurable Airflow Variables
+RUN_GROUP = Variable.get("RUN_GROUP", default_var="default_run")
+
+default_args = {
+    'owner': 'airflow',
+    'start_date': datetime(2023, 1, 1),
+    'retries': 1,
+}
 
 with DAG(
-    dag_id='readmission_pipeline',
-    start_date=datetime(2023, 1, 1),
-    schedule_interval=None,  # Change to '@daily' or CRON if needed
+    dag_id='readmission_pipeline', # Identifier for DAG
+    default_args=default_args,  #
+    schedule_interval=None,
     catchup=False,
     tags=['mlops', 'readmission'],
 ) as dag:
 
     clean_task = BashOperator(
         task_id='clean_data',
-        bash_command='docker exec ml-pipeline python scripts/clean.py'
+        bash_command=(
+            'docker exec ml-pipeline python scripts/clean.py '
+            '--input data/raw/hospital_readmissions.csv'
+            '--output data/processed/cleaned_data.csv'
+        )
     )
 
     feature_task = BashOperator(
         task_id='feature_engineering',
-        bash_command='docker exec ml-pipeline python scripts/feature_engineering.py'
+        bash_command=(
+            'docker exec ml-pipeline python scripts/feature_engineering.py '
+            '--input data/processed/cleaned_data.csv '
+            '--output data/processed/featured_data.csv'
+        )
     )
 
     train_task = BashOperator(
         task_id='train_model',
-        bash_command='docker exec ml-pipeline python scripts/train_model.py'
+        bash_command=(
+            'docker exec ml-pipeline python scripts/train_model.py '
+            '--input data/processed/featured_data.csv '
+            '--run-group {{ params.run_group }}'
+        ),
+        params={'run_group': RUN_GROUP},
     )
 
     evaluate_task = BashOperator(
         task_id='evaluate_model',
-        bash_command='docker exec ml-pipeline python scripts/evaluate_model.py'
+        bash_command=(
+            'docker exec ml-pipeline python scripts/evaluate_model.py '
+            '--run-group {{ params.run_group }} '
+            '--model-name ReadmissionModel '
+            '--stage Staging'
+        ),
+        params={'run_group': RUN_GROUP},
     )
 
     clean_task >> feature_task >> train_task >> evaluate_task
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # from datetime import datetime

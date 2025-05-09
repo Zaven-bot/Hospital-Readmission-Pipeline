@@ -7,7 +7,7 @@ services:
       POSTGRES_DB: airflow
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
+  # Provides the UI (localhost:8080) to view DAGs, trigger runs, monitor tasks
   airflow-webserver:
     build:
       context: ./airflow
@@ -15,8 +15,8 @@ services:
     depends_on:
       - postgres
     environment:
-      AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow  # ✅ Modern
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor # coordinate tasks between webserver and sched.
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow  # access to metadata
       AIRFLOW__WEBSERVER__RBAC: 'True'
       AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
 
@@ -27,9 +27,11 @@ services:
       - "8080:8080"
     volumes:
       - ./airflow/dags:/opt/airflow/dags
-      - ./scripts:/opt/airflow/scripts
-    entrypoint: ["/bin/bash", "-c", "./init.sh && airflow webserver"]
+      - ./scripts:/opt/airflow/scripts # needs scripts to know where to command ml-pipeline
+    # override ENTRYPOINT in Dockerfile
+    entrypoint: ["/opt/airflow/init.sh", "webserver"]
 
+  # Executes DAG tasks by watching the shedule or manual triggers
   airflow-scheduler:
     build:
       context: ./airflow
@@ -37,12 +39,14 @@ services:
     depends_on:
       - postgres
     environment:
-      AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow  # ✅ Modern
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor # coordinate tasks between webserver and sched.
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow  # access to metadata
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
+
     volumes:
       - ./airflow/dags:/opt/airflow/dags
-      - ./scripts:/opt/airflow/scripts
-    command: airflow scheduler
+      - ./scripts:/opt/airflow/scripts # needs scripts to know where to command ml-pipeline
+    entrypoint: ["/opt/airflow/init.sh", "scheduler"]
 
   ml-pipeline:
     build:
@@ -54,5 +58,6 @@ services:
       - ./models:/app/models
       - ./plots:/app/plots
 
+# initialize named volume for use
 volumes:
   postgres_data:

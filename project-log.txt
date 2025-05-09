@@ -1,0 +1,7 @@
+Next steps:
+- Incorporate input variables inside Airflow UI for user to change various model parameters (maybe just metadata)
+- Complete a Streamlit interface if possible
+- Ensure can run a full production pipeline
+- Summarize everything in README
+- Discuss how this leads into building next project
+ 
